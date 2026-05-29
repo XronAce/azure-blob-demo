@@ -1,0 +1,232 @@
+{
+  "info": {
+    "name": "Azure Blob Demo",
+    "description": "REST API collection for Azure Blob Storage upload/download demo (Spring Boot 3.5.3, port 5555)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5555",
+      "type": "string"
+    },
+    {
+      "key": "blobName",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Upload File",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const res = pm.response.json();",
+              "    pm.collectionVariables.set('blobName', res.blobName);",
+              "    pm.test('Upload successful', () => pm.expect(res.message).to.include('successfully'));",
+              "    pm.test('URL returned', () => pm.expect(res.url).to.include('blob.core.windows.net'));",
+              "    console.log('Uploaded: ' + res.blobName);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": [],
+              "description": "Select any file to upload"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/blobs/upload",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "blobs", "upload"]
+        },
+        "description": "Upload a file to Azure Blob Storage.\n\nIn the Body tab → form-data, set the key to `file` with type **File** and pick a file from your disk.\n\nThe `blobName` collection variable is auto-set from the response so you can use it directly in Download and Delete."
+      },
+      "response": [
+        {
+          "name": "Upload Success",
+          "originalRequest": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "example.txt"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/blobs/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blobs", "upload"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"message\": \"File uploaded successfully\",\n  \"blobName\": \"example.txt\",\n  \"url\": \"https://storaccsubdialog001.blob.core.windows.net/rag-data/example.txt\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "List All Blobs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Response is array', () => {",
+              "    const res = pm.response.json();",
+              "    pm.expect(res).to.be.an('array');",
+              "    console.log('Blobs in container: ' + res.length);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/blobs",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "blobs"]
+        },
+        "description": "List all blob names in the configured container (`rag-data`)."
+      },
+      "response": [
+        {
+          "name": "List Success",
+          "originalRequest": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/blobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blobs"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "[\"example.txt\", \"photo.jpg\"]"
+        }
+      ]
+    },
+    {
+      "name": "Download Blob",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Download successful', () => {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "    pm.expect(pm.response.headers.get('Content-Disposition')).to.include('attachment');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/blobs/download/{{blobName}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "blobs", "download", "{{blobName}}"]
+        },
+        "description": "Download a blob by name. Uses `{{blobName}}` which is auto-set after Upload.\n\nTo save the file to disk use **Send and Download** (arrow next to the Send button) instead of Send."
+      },
+      "response": [
+        {
+          "name": "Download Success",
+          "originalRequest": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/blobs/download/example.txt",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blobs", "download", "example.txt"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Disposition", "value": "attachment; filename=\"example.txt\"" },
+            { "key": "Content-Type", "value": "text/plain" }
+          ],
+          "body": "<file content bytes>"
+        }
+      ]
+    },
+    {
+      "name": "Delete Blob",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Delete successful', () => {",
+              "    const res = pm.response.json();",
+              "    pm.expect(res.message).to.include('successfully');",
+              "    pm.collectionVariables.set('blobName', '');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/blobs/{{blobName}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "blobs", "{{blobName}}"]
+        },
+        "description": "Delete a blob by name. Uses `{{blobName}}` which is auto-set after Upload.\n\nAfter deletion the `blobName` variable is cleared."
+      },
+      "response": [
+        {
+          "name": "Delete Success",
+          "originalRequest": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/blobs/example.txt",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blobs", "example.txt"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"message\": \"Blob deleted successfully\",\n  \"blobName\": \"example.txt\"\n}"
+        }
+      ]
+    }
+  ]
+}
