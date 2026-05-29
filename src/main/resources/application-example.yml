@@ -1,0 +1,22 @@
+spring:
+  cloud:
+    azure:
+      storage:
+        blob:
+          # 방법 1: 연결 문자열 사용 (Azure 포털 > 스토리지 계정 > 액세스 키에서 복사)
+          connection-string: DefaultEndpointsProtocol=https;AccountName=YOUR_ACCOUNT_NAME;AccountKey=YOUR_ACCOUNT_KEY;EndpointSuffix=core.windows.net
+          # 방법 2: 계정 이름 + 키 분리 입력 (위 connection-string 주석 처리 후 아래 사용)
+          # account-name: YOUR_ACCOUNT_NAME
+          # account-key: YOUR_ACCOUNT_KEY
+  servlet:
+    multipart:
+      max-file-size: 500MB       # 단일 파일 최대 업로드 크기
+      max-request-size: 500MB    # 요청 전체 최대 크기
+
+app:
+  azure:
+    storage:
+      container-name: YOUR_CONTAINER_NAME  # Blob 컨테이너 이름 (없으면 자동 생성)
+
+server:
+  port: 8080  # 서버 포트 (원하는 포트로 변경 가능)
